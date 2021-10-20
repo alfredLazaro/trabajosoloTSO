@@ -1,57 +1,69 @@
 BACI System: C-- to PCODE Compiler, 12:29  18 Jul 2004
-Source file: C:\jbaci\examples\medicoMonitores\medicMonit.cm  Tue Oct 19 21:44:10 2021
+Source file: C:\jbaci\examples\medicoMonitores\medicMonit.cm  Tue Oct 19 23:03:20 2021
  line  pc
-   1    0  semaphore Medico=0;
-   2    0  semaphore Paciente=1;
-   3    0  semaphore Sintoma=1;
-   4    0  semaphore Diagnostica=0;
-   5    0  int pregunt=0;
-   6    0  int dio=0;
-   7    0  void paciente(int id){
-   8    0  	wait(Paciente);
-   9    2  	cout<<"EEEl Paciente "<<id<<" busca al medico" <<endl;
-  10    7  	
-  11    7  	signal(Medico); 
-  12    9  	if(pregunt=1){
-  13   13  	wait(Sintoma);
-  14   15  	cout<<"     el paciente "<<id<<" DA sus sintomas"<<'\n'; //no esta continuando
-  15   21  	dio=1;
-  16   24  	signal(Diagnostica);
-  17   26  	//signal(Sintoma);
-  18   26  	}else{
-  19   27  	   wait(Sintoma);	
-  20   29  	}
-  21   29  	//signal(Medico);
-  22   29  }
-  23   30  
-  24   30  
-  25   30  void medico(int id){
-  26   30  	
-  27   30  	int j;
-  28   30  	int i;
-  29   30  	while(j<5){ //se necesita n pacientes
-  30   34  	
-  31   34  	wait(Medico);
-  32   36  	cout<<"     Medico "<<id<<" pregunta sus Sintomas"<<'\n';
-  33   42  	pregunt=1;
-  34   45  	signal(Sintoma);
-  35   47  	if(dio==1){
-  36   51  	//wait(Diagnostica);
-  37   51  	cout<<" el Medico "<<id<<" diacnostica"<<'\n';
-  38   57  		signal(Paciente);
-  39   59  	}else{}
-  40   60  	
-  41   60  	
-  42   60  	cout<<endl;
-  43   61  	j++;
-  44   66  	
-  45   66  }
-  46   67  
-  47   67  }
-  48   68  
-  49   68  void main(){
-  50   69  		cobegin{
-  51   70  		paciente(1);paciente(2);paciente(3);paciente(4);paciente(5);
-  52   90  		medico(1);
-  53   94  		}
-  54   95  }
+   1    0  monitor Atencion{
+   2    0  	int N;
+   3    0  	condition Medico;
+   4    0  	condition Paciente;
+   5    0  	condition Sintoma;
+   6    0  	condition Diagnostica;
+   7    0  int pregunt=0;
+   8    0  int dio=0;
+   9    0  void paciente(int id){
+  10    1  	if(N==1) waitc(Paciente);
+  11    8  	N=1;
+  12   11  	cout<<"EEEl Paciente "<<id<<" busca al medico" <<endl;
+  13   16  	
+  14   16  	signalc(Medico); 
+  15   18  	//if(pregunt=1){
+  16   18  	waitc(Sintoma);
+  17   21  	cout<<"     el paciente "<<id<<" DA sus sintomas"<<'\n'; 
+  18   27  	dio=1;
+  19   30  	signalc(Diagnostica);
+  20   32  	//signal(Sintoma);
+  21   32  	//}else{waitc(Sintoma);}
+  22   32  	//signal(Medico);
+  23   32  }
+  24   34  
+  25   34  void medico(int id){
+  26   35  	int j;
+  27   35  	int i;
+  28   35  	if(N==0) waitc(Medico);
+  29   42  	while(j<5){ //se necesita n pacientes
+  30   46  	
+  31   46  	N=0;
+  32   49  	cout<<"     Medico "<<id<<" pregunta sus Sintomas"<<'\n';
+  33   55  	pregunt=1;
+  34   58  	signalc(Sintoma);
+  35   60  	
+  36   60  	if(dio==1){
+  37   64  	//waitc(Diagnostica);
+  38   64  	cout<<" el Medico "<<id<<" diacnostica"<<'\n';
+  39   70  		signalc(Paciente);
+  40   72  	}else{}
+  41   73  	
+  42   73  	
+  43   73  	cout<<endl;
+  44   74  	j++;
+  45   79  	
+  46   79  }
+  47   80  
+  48   80  }
+  49   82  init{
+  50   88  	N=0;
+  51   91  }
+  52   92  }
+  53   92  
+  54   92  void pacienteA(int ID){
+  55   92  	paciente(ID);
+  56   96  }
+  57   97  
+  58   97  void atiende(int ID){
+  59   97  	medico(ID);
+  60  101  }
+  61  102  void main(){
+  62  103  		cobegin{
+  63  104  		pacienteA(1);pacienteA(2);pacienteA(3);pacienteA(4);pacienteA(5);
+  64  124  		atiende(1);
+  65  128  		}
+  66  129  }

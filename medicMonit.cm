@@ -1,41 +1,42 @@
-semaphore Medico=0;
-semaphore Paciente=1;
-semaphore Sintoma=1;
-semaphore Diagnostica=0;
+monitor Atencion{
+	int N;
+	condition Medico;
+	condition Paciente;
+	condition Sintoma;
+	condition Diagnostica;
 int pregunt=0;
 int dio=0;
 void paciente(int id){
-	wait(Paciente);
+	if(N==1) waitc(Paciente);
+	N=1;
 	cout<<"EEEl Paciente "<<id<<" busca al medico" <<endl;
 	
-	signal(Medico); 
-	if(pregunt=1){
-	wait(Sintoma);
-	cout<<"     el paciente "<<id<<" DA sus sintomas"<<'\n'; //no esta continuando
+	signalc(Medico); 
+	//if(pregunt=1){
+	waitc(Sintoma);
+	cout<<"     el paciente "<<id<<" DA sus sintomas"<<'\n'; 
 	dio=1;
-	signal(Diagnostica);
+	signalc(Diagnostica);
 	//signal(Sintoma);
-	}else{
-	   wait(Sintoma);	
-	}
+	//}else{waitc(Sintoma);}
 	//signal(Medico);
 }
 
-
 void medico(int id){
-	
 	int j;
 	int i;
+	if(N==0) waitc(Medico);
 	while(j<5){ //se necesita n pacientes
 	
-	wait(Medico);
+	N=0;
 	cout<<"     Medico "<<id<<" pregunta sus Sintomas"<<'\n';
 	pregunt=1;
-	signal(Sintoma);
+	signalc(Sintoma);
+	
 	if(dio==1){
-	//wait(Diagnostica);
+	//waitc(Diagnostica);
 	cout<<" el Medico "<<id<<" diacnostica"<<'\n';
-		signal(Paciente);
+		signalc(Paciente);
 	}else{}
 	
 	
@@ -45,10 +46,21 @@ void medico(int id){
 }
 
 }
+init{
+	N=0;
+}
+}
 
+void pacienteA(int ID){
+	paciente(ID);
+}
+
+void atiende(int ID){
+	medico(ID);
+}
 void main(){
 		cobegin{
-		paciente(1);paciente(2);paciente(3);paciente(4);paciente(5);
-		medico(1);
+		pacienteA(1);pacienteA(2);pacienteA(3);pacienteA(4);pacienteA(5);
+		atiende(1);
 		}
 }
