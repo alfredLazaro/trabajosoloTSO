@@ -1,0 +1,54 @@
+semaphore Medico=0;
+semaphore Paciente=1;
+semaphore Sintoma=1;
+semaphore Diagnostica=0;
+int pregunt=0;
+int dio=0;
+void paciente(int id){
+	wait(Paciente);
+	cout<<"EEEl Paciente "<<id<<" busca al medico" <<endl;
+	
+	signal(Medico); 
+	if(pregunt=1){
+	wait(Sintoma);
+	cout<<"     el paciente "<<id<<" DA sus sintomas"<<'\n'; //no esta continuando
+	dio=1;
+	signal(Diagnostica);
+	//signal(Sintoma);
+	}else{
+	   wait(Sintoma);	
+	}
+	//signal(Medico);
+}
+
+
+void medico(int id){
+	
+	int j;
+	int i;
+	while(j<5){ //se necesita n pacientes
+	
+	wait(Medico);
+	cout<<"     Medico "<<id<<" pregunta sus Sintomas"<<'\n';
+	pregunt=1;
+	signal(Sintoma);
+	if(dio==1){
+	//wait(Diagnostica);
+	cout<<" el Medico "<<id<<" diacnostica"<<'\n';
+		signal(Paciente);
+	}else{}
+	
+	
+	cout<<endl;
+	j++;
+	
+}
+
+}
+
+void main(){
+		cobegin{
+		paciente(1);paciente(2);paciente(3);paciente(4);paciente(5);
+		medico(1);
+		}
+}
